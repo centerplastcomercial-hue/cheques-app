@@ -1,0 +1,1596 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartera de Cheques — Center Plast</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #f0f4f8; font-family: Arial, sans-serif;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
+    button { touch-action: manipulation; cursor: pointer; border: none; }
+    input[type=text], input[type=number], input[type=password] {
+      font-size: 16px; border: 1.5px solid #d1d5db; border-radius: 10px;
+      padding: 11px 14px; width: 100%; outline: none; background: white;
+      -webkit-appearance: none; box-sizing: border-box;
+    }
+    select {
+      font-size: 16px; border: 1.5px solid #d1d5db; border-radius: 10px;
+      padding: 11px 14px; width: 100%; outline: none; background: white;
+      -webkit-appearance: none; appearance: none; box-sizing: border-box;
+    }
+    input:focus, select:focus { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(46,117,182,.18); }
+
+    /* Layout */
+    .max-w-lg { max-width: 512px; }
+    .mx-auto  { margin-left: auto; margin-right: auto; }
+    .w-full   { width: 100%; }
+    .min-w-0  { min-width: 0; }
+    .hidden   { display: none !important; }
+    .block    { display: block; }
+
+    /* Flex */
+    .flex          { display: flex; }
+    .flex-col      { flex-direction: column; }
+    .flex-1        { flex: 1 1 0%; }
+    .flex-shrink-0 { flex-shrink: 0; }
+    .flex-wrap     { flex-wrap: wrap; }
+    .items-center  { align-items: center; }
+    .items-start   { align-items: flex-start; }
+    .items-baseline{ align-items: baseline; }
+    .justify-between { justify-content: space-between; }
+    .gap-1-5 { gap: 6px; }
+    .gap-2   { gap: 8px; }
+    .gap-3   { gap: 12px; }
+    .gap-4   { gap: 16px; }
+
+    /* Grid */
+    .grid        { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .col-span-2  { grid-column: span 2; }
+
+    /* Spacing */
+    .space-y-2 > * + * { margin-top: 8px; }
+    .space-y-3 > * + * { margin-top: 12px; }
+    .px-1  { padding-left: 4px;  padding-right: 4px; }
+    .px-2  { padding-left: 8px;  padding-right: 8px; }
+    .px-4  { padding-left: 16px; padding-right: 16px; }
+    .py-1  { padding-top: 4px;   padding-bottom: 4px; }
+    .py-1-5{ padding-top: 6px;   padding-bottom: 6px; }
+    .py-3  { padding-top: 12px;  padding-bottom: 12px; }
+    .pt-4  { padding-top: 16px; }
+    .p-3   { padding: 12px; }
+    .p-4   { padding: 16px; }
+    .mt-0-5{ margin-top: 2px; }
+    .mt-1  { margin-top: 4px; }
+    .mt-2  { margin-top: 8px; }
+    .mt-3  { margin-top: 12px; }
+    .mt-4  { margin-top: 16px; }
+    .mt-5  { margin-top: 20px; }
+    .mb-0-5{ margin-bottom: 2px; }
+    .mb-1  { margin-bottom: 4px; }
+    .mb-2  { margin-bottom: 8px; }
+    .mb-3  { margin-bottom: 12px; }
+    .mb-4  { margin-bottom: 16px; }
+
+    /* Typography */
+    .text-xs   { font-size: 12px; line-height: 16px; }
+    .text-sm   { font-size: 14px; line-height: 20px; }
+    .text-base { font-size: 16px; line-height: 24px; }
+    .text-lg   { font-size: 18px; line-height: 28px; }
+    .text-2xl  { font-size: 24px; line-height: 32px; }
+    .font-medium  { font-weight: 500; }
+    .font-semibold{ font-weight: 600; }
+    .font-bold    { font-weight: 700; }
+    .font-black   { font-weight: 900; }
+    .leading-tight{ line-height: 1.25; }
+    .leading-none { line-height: 1; }
+    .uppercase    { text-transform: uppercase; }
+    .tracking-wide{ letter-spacing: .025em; }
+    .text-right   { text-align: right; }
+    .text-center  { text-align: center; }
+    .text-white   { color: #fff; }
+    .text-gray-400{ color: #9ca3af; }
+    .text-gray-500{ color: #6b7280; }
+    .text-gray-700{ color: #374151; }
+    .text-gray-800{ color: #1f2937; }
+    .text-gray-900{ color: #111827; }
+    .text-red-400 { color: #f87171; }
+    .shadow-md    { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
+    .rounded-xl   { border-radius: 12px; }
+    .sticky { position: -webkit-sticky; position: sticky; }
+    .top-0  { top: 0; }
+
+    /* Components */
+    .card     { background: white; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+    .warn-card{ background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 14px; }
+    .btn { border-radius: 10px; font-weight: 700; padding: 13px 18px; font-size: 15px; line-height: 1;
+           display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+           -webkit-tap-highlight-color: transparent; }
+    .btn:active   { opacity: .8; }
+    .btn:disabled { opacity: .45; pointer-events: none; }
+    .btn-blue  { background: #8B1A1A; color: white; }
+    .btn-light { background: #e9ecef; color: #374151; }
+    .btn-sm    { padding: 8px 13px; font-size: 13px; border-radius: 8px; font-weight: 600; }
+    .btn-edit  { background: #fee2e2; color: #7B1A1A; }
+    .btn-del   { background: #fee2e2; color: #dc2626; }
+
+    /* Chat asistente */
+    .chat-msg-user { display:flex; justify-content:flex-end; margin-bottom:8px; }
+    .chat-msg-ai   { display:flex; justify-content:flex-start; margin-bottom:8px; }
+    .chat-bubble-user { max-width:80%; background:#8B1A1A; color:white;
+                        border-radius:16px 16px 4px 16px; padding:10px 14px;
+                        font-size:14px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+    .chat-bubble-ai   { max-width:85%; background:#f1f5f9; color:#1a1a1a;
+                        border-radius:16px 16px 16px 4px; padding:10px 14px;
+                        font-size:14px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+    .chat-bubble-typing { display:flex; gap:4px; align-items:center; padding:12px 14px; }
+    .chat-dot { width:7px; height:7px; background:#9ca3af; border-radius:50%;
+                animation: chatdot .9s ease-in-out infinite; }
+    .chat-dot:nth-child(2) { animation-delay:.15s; }
+    .chat-dot:nth-child(3) { animation-delay:.3s; }
+    @keyframes chatdot { 0%,80%,100%{transform:scale(.7);opacity:.4} 40%{transform:scale(1);opacity:1} }
+
+    .sheet-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+                     background: rgba(0,0,0,.45); z-index: 50;
+                     display: flex; align-items: flex-end; }
+    .sheet-overlay.hidden { display: none !important; }
+    .sheet-body { background: white; width: 100%; max-width: 520px; margin: 0 auto;
+                  border-radius: 20px 20px 0 0;
+                  padding: 20px 20px 40px;
+                  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+                  max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .sheet-handle { width: 40px; height: 4px; background: #d1d5db; border-radius: 2px;
+                    margin: 0 auto 16px; }
+    #gen-bar { position: fixed; bottom: 0; left: 0; right: 0;
+               background: rgba(240,244,248,.97);
+               -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+               padding: 10px 16px;
+               padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+               border-top: 1px solid rgba(0,0,0,.07); z-index: 40; }
+    .spinner { display: inline-block; width: 18px; height: 18px;
+               border: 3px solid rgba(255,255,255,.35); border-radius: 50%;
+               border-top-color: white; animation: spin .75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fade-in { animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+    label.lbl { display: block; font-size: 12px; font-weight: 700; color: #6b7280;
+                text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+    #preview-img { width: 100%; max-height: 200px; object-fit: contain;
+                   border-radius: 10px; margin-top: 12px; display: none; }
+    .field-row { display: flex; justify-content: space-between; align-items: baseline;
+                 padding: 8px 0; border-bottom: 1px solid #f1f5f9; gap: 8px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-key { font-size: 11px; font-weight: 700; color: #9ca3af;
+                 text-transform: uppercase; flex-shrink: 0; }
+    .field-val { font-size: 14px; color: #1f2937; text-align: right; }
+    .badge   { display: inline-block; font-size: 11px; font-weight: 700;
+               padding: 2px 8px; border-radius: 20px; }
+    .badge-D { background: #fef3c7; color: #92400e; }
+    .badge-C { background: #dcfce7; color: #166534; }
+    /* Tailwind decimal aliases (iOS Safari compat) */
+    .py-1\.5  { padding-top: 6px; padding-bottom: 6px; }
+    .mt-0\.5  { margin-top: 2px; }
+    .mb-0\.5  { margin-bottom: 2px; }
+    .gap-1\.5 { gap: 6px; }
+    header   { background: white; position: fixed;
+               top: 0; left: 0; right: 0; z-index: 30; color: #1a1a1a;
+               box-shadow: 0 2px 8px rgba(0,0,0,.12);
+               border-bottom: 3px solid #8B1A1A; }
+    main     { max-width: 512px; margin: 0 auto; padding: 16px 16px 0; }
+    main > * + * { margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="data:image/png;base64,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" alt="Center Plast" style="width:52px;height:52px;object-fit:contain;flex-shrink:0;">
+        <div>
+          <p style="font-weight:900;font-size:15px;line-height:1.1;margin:0;letter-spacing:0.08em;color:#1a1a1a;text-transform:uppercase;">Center Plast</p>
+          <p style="font-weight:500;font-size:10px;margin:2px 0 0;letter-spacing:0.04em;color:#555555;text-transform:uppercase;">Quilmes SRL · Cheques</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <p id="hdr-count" style="font-size:22px;font-weight:900;line-height:1;margin:0;color:#8B1A1A;">0</p>
+          <p style="font-size:11px;color:#8B1A1A;font-weight:600;margin:1px 0 0;text-transform:uppercase;letter-spacing:0.04em;">cheques</p>
+        </div>
+        <div style="width:44px;height:44px;"></div><!-- espacio reservado -->
+      </div>
+    </div>
+    <div style="background:#8B1A1A;padding:6px 16px;">
+      <div class="max-w-lg mx-auto flex justify-between" style="font-size:14px;">
+        <span style="color:#FECACA;letter-spacing:0.02em;">Total acumulado</span>
+        <span id="hdr-total" class="font-bold" style="color:white;">$0,00</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top:115px;">
+
+    <!-- Banner de key faltante (no bloquea la app) -->
+    <div id="key-banner" class="hidden" style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <p style="font-size:13px;font-weight:700;color:#92400e;margin:0;">Falta la API Key de Groq</p>
+        <p style="font-size:12px;color:#b45309;margin:4px 0 0;">Tocá el botón para configurarla</p>
+      </div>
+      <button onclick="openKeySheet()" style="background:#f59e0b;color:white;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;white-space:nowrap;">⚙ Configurar</button>
+    </div>
+
+    <!-- Camera card -->
+    <div class="card p-4">
+      <!-- Scanning -->
+      <div id="cam-scanning" class="hidden" style="background:linear-gradient(135deg,#8B1A1A,#C0392B);border-radius:14px;padding:28px 20px;text-align:center;color:white;">
+        <span class="spinner" style="width:28px;height:28px;border-width:4px;"></span>
+        <p style="margin-top:10px;font-size:15px;font-weight:600;">Analizando con IA...</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.65);margin-top:3px;">Extrayendo datos del cheque</p>
+      </div>
+      <!-- Idle -->
+      <div id="cam-idle" class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-open-camera"
+          style="background:linear-gradient(135deg,#8B1A1A,#C0392B);color:white;border:none;border-radius:14px;padding:24px 12px;text-align:center;display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;width:100%;font-family:inherit;">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 10px;">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <p style="font-size:15px;font-weight:700;margin:0;">Cámara</p>
+          <p style="font-size:12px;color:rgba(255,255,255,.7);margin:3px 0 0;">Sacar foto ahora</p>
+        </button>
+        <label for="input-galeria"
+          style="background:white;color:#8B1A1A;border:2px solid #C0392B;border-radius:14px;padding:24px 12px;text-align:center;display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 10px;">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <p style="font-size:15px;font-weight:700;margin:0;">Galería</p>
+          <p style="font-size:12px;color:#6b7280;margin:3px 0 0;">Elegir imagen</p>
+        </label>
+      </div>
+      <img id="preview-img" alt="preview">
+      <input id="input-camara"  type="file" accept="image/*" capture="environment" style="position:fixed;top:-300px;left:0;opacity:0;width:1px;height:1px;">
+      <input id="input-galeria" type="file" accept="image/*" style="position:fixed;top:-300px;left:0;opacity:0;width:1px;height:1px;">
+    </div>
+
+    <!-- Checks list -->
+    <div id="checks-section" class="hidden">
+      <div class="flex items-center justify-between mb-2 px-1">
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Cheques en sesión</p>
+        <button onclick="confirmClear()" class="text-xs text-red-400 font-semibold py-1 px-2">Limpiar todo</button>
+      </div>
+      <div id="checks-list" class="space-y-2"></div>
+    </div>
+
+  </main>
+
+  <!-- Botón asistente AI -->
+  <button id="btn-chat" title="Asistente virtual"
+    style="position:fixed;top:10px;left:12px;z-index:200;
+           background:#8B1A1A;color:white;border:2px solid rgba(255,255,255,0.3);
+           border-radius:12px;width:48px;height:48px;font-size:22px;line-height:1;
+           touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+           box-shadow:0 3px 10px rgba(0,0,0,.35);cursor:pointer;">💬</button>
+
+  <!-- Botón configuración -->
+  <button id="btn-settings" title="Configurar API Key"
+    style="position:fixed;top:10px;right:12px;z-index:200;
+           background:#8B1A1A;color:white;border:2px solid rgba(255,255,255,0.3);
+           border-radius:12px;width:48px;height:48px;font-size:22px;line-height:1;
+           touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+           box-shadow:0 3px 10px rgba(0,0,0,.35);cursor:pointer;">⚙</button>
+
+  <!-- Bottom bar -->
+  <div id="gen-bar" class="hidden">
+    <div class="max-w-lg mx-auto space-y-2">
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btn-gen" onclick="generateExcel()" class="btn btn-blue" style="font-size:15px;padding:14px;">
+          ⬇ Importar Tango
+        </button>
+        <button id="btn-pdf" onclick="generatePDF()" class="btn" style="background:#dc2626;color:white;font-size:15px;padding:14px;">
+          📄 PDF
+        </button>
+      </div>
+      <div id="email-btns" class="hidden grid grid-cols-2 gap-2">
+        <button onclick="sendToEmail('administracion@centerplastquilmes.com.ar')"
+          class="btn w-full" style="background:#7B1A1A;color:white;padding:12px 8px;font-size:13px;">
+          📧 Administración
+        </button>
+        <button onclick="sendToEmail('info@centerplastquilmes.com.ar')"
+          class="btn w-full" style="background:#7B1A1A;color:white;padding:12px 8px;font-size:13px;">
+          📧 Info
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key settings sheet -->
+  <!-- Cámara en vivo con marco guía -->
+  <div id="live-camera-sheet" class="hidden" style="position:fixed;inset:0;z-index:500;background:#000;display:flex;flex-direction:column;">
+    <div id="live-viewport" style="flex:1;position:relative;overflow:hidden;background:#000;">
+      <video id="live-video" autoplay playsinline muted style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+      <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+        <div id="live-frame" style="position:relative;border:3px solid #fff;box-shadow:0 0 0 2000px rgba(0,0,0,.5);border-radius:6px;">
+          <div style="position:absolute;top:-3px;left:-3px;width:22px;height:22px;border-top:4px solid #8B1A1A;border-left:4px solid #8B1A1A;border-radius:4px 0 0 0;"></div>
+          <div style="position:absolute;top:-3px;right:-3px;width:22px;height:22px;border-top:4px solid #8B1A1A;border-right:4px solid #8B1A1A;border-radius:0 4px 0 0;"></div>
+          <div style="position:absolute;bottom:-3px;left:-3px;width:22px;height:22px;border-bottom:4px solid #8B1A1A;border-left:4px solid #8B1A1A;border-radius:0 0 0 4px;"></div>
+          <div style="position:absolute;bottom:-3px;right:-3px;width:22px;height:22px;border-bottom:4px solid #8B1A1A;border-right:4px solid #8B1A1A;border-radius:0 0 4px 0;"></div>
+        </div>
+      </div>
+      <p style="position:absolute;top:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0;">Encuadrá el cheque dentro del marco</p>
+    </div>
+    <div style="background:#111;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:space-between;">
+      <button id="btn-live-cancel" type="button" style="background:#374151;color:white;border:none;border-radius:10px;padding:13px 18px;font-weight:700;font-size:14px;touch-action:manipulation;font-family:inherit;">Cancelar</button>
+      <button id="btn-live-capture" type="button" title="Sacar foto" style="background:#8B1A1A;color:white;border:4px solid white;border-radius:50%;width:68px;height:68px;touch-action:manipulation;box-shadow:0 2px 10px rgba(0,0,0,.4);"></button>
+      <div style="width:90px;"></div>
+    </div>
+  </div>
+
+  <!-- Recorte guiado del cheque (respaldo cuando no hay cámara en vivo) -->
+  <div id="crop-sheet" class="hidden" style="position:fixed;inset:0;z-index:500;background:#000;display:flex;flex-direction:column;">
+    <div id="crop-viewport" style="flex:1;position:relative;overflow:hidden;touch-action:none;">
+      <img id="crop-img" src="" alt="" style="position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;">
+      <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+        <div id="crop-frame" style="position:relative;border:3px solid #fff;box-shadow:0 0 0 2000px rgba(0,0,0,.55);border-radius:6px;">
+          <div style="position:absolute;top:-3px;left:-3px;width:22px;height:22px;border-top:4px solid #8B1A1A;border-left:4px solid #8B1A1A;border-radius:4px 0 0 0;"></div>
+          <div style="position:absolute;top:-3px;right:-3px;width:22px;height:22px;border-top:4px solid #8B1A1A;border-right:4px solid #8B1A1A;border-radius:0 4px 0 0;"></div>
+          <div style="position:absolute;bottom:-3px;left:-3px;width:22px;height:22px;border-bottom:4px solid #8B1A1A;border-left:4px solid #8B1A1A;border-radius:0 0 0 4px;"></div>
+          <div style="position:absolute;bottom:-3px;right:-3px;width:22px;height:22px;border-bottom:4px solid #8B1A1A;border-right:4px solid #8B1A1A;border-radius:0 0 4px 0;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#111;padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px));">
+      <p style="color:#9ca3af;font-size:12.5px;text-align:center;margin:0 0 10px;">Encuadrá el cheque dentro del marco. Arrastrá la imagen para moverla y usá la barra para acercar/alejar.</p>
+      <input type="range" id="crop-zoom" min="100" max="320" value="100" style="width:100%;margin-bottom:14px;accent-color:#8B1A1A;">
+      <div style="display:flex;gap:10px;">
+        <button id="btn-crop-cancel" style="flex:1;background:#374151;color:white;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:15px;touch-action:manipulation;">Cancelar</button>
+        <button id="btn-crop-confirm" style="flex:2;background:#8B1A1A;color:white;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:15px;touch-action:manipulation;">Usar esta imagen ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat asistente -->
+  <div id="chat-sheet" class="sheet-overlay hidden">
+    <div class="sheet-body" style="max-height:78vh;display:flex;flex-direction:column;padding:16px 16px 0;">
+      <div class="sheet-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:38px;height:38px;background:linear-gradient(135deg,#8B1A1A,#C0392B);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🤖</div>
+          <div>
+            <p style="font-weight:800;font-size:15px;color:#1a1a1a;margin:0;letter-spacing:0.02em;">Asistente Center Plast</p>
+            <p style="font-size:11px;color:#9ca3af;margin:1px 0 0;">Powered by Groq AI · Llama 4</p>
+          </div>
+        </div>
+        <button onclick="closeChat()" style="background:#f1f5f9;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;">Cerrar ✕</button>
+      </div>
+      <div id="chat-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 0 8px;min-height:160px;"></div>
+      <div style="padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid #f1f5f9;display:flex;gap:8px;align-items:center;">
+        <button id="btn-voice-chat" title="Hablar"
+          style="background:#f1f5f9;color:#374151;border:none;border-radius:10px;width:44px;height:44px;font-size:20px;flex-shrink:0;cursor:pointer;touch-action:manipulation;transition:background .2s;">🎤</button>
+        <input type="text" id="chat-input" placeholder="Escribí o hablá..." style="flex:1;margin:0;"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+        <button id="btn-send-chat" onclick="sendChat()"
+          style="background:#8B1A1A;color:white;border:none;border-radius:10px;padding:12px 16px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;touch-action:manipulation;flex-shrink:0;">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="key-sheet" class="sheet-overlay hidden">
+    <div class="sheet-body">
+      <div class="sheet-handle"></div>
+      <p class="font-bold text-gray-900 text-lg mb-1">API Key de Groq</p>
+      <p class="text-gray-500 text-sm mb-1">Gratis en <strong>console.groq.com</strong> → "Create API key"</p>
+      <p class="text-gray-400 text-xs mb-4">Sin tarjeta de crédito. 14.400 escaneos por día — suficiente para meses de trabajo.</p>
+      <label class="lbl">Pegá tu key acá</label>
+      <input type="text" id="key-input" placeholder="gsk_..." autocomplete="off" spellcheck="false"
+        style="font-family:monospace;font-size:13px;">
+      <div id="key-status" class="mt-2 text-sm hidden"></div>
+      <button onclick="saveKey()" class="btn btn-blue w-full mt-4" style="padding:14px;font-size:16px;">Guardar</button>
+      <button onclick="closeKeySheet()" class="btn btn-light w-full mt-2" style="padding:13px;">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Confirm sheet -->
+  <div id="confirm-sheet" class="sheet-overlay hidden">
+    <div class="sheet-body">
+      <div class="sheet-handle"></div>
+      <p class="font-bold text-gray-900 text-lg mb-0.5">Datos extraídos</p>
+      <p class="text-gray-400 text-sm mb-3">Revisá antes de agregar</p>
+      <div id="confirm-fields"></div>
+      <div id="confirm-warn" class="hidden mt-3 p-3 rounded-xl text-sm font-medium" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;"></div>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <button onclick="confirmAdd()" class="btn btn-blue col-span-2" style="padding:14px;">Agregar ✓</button>
+        <button onclick="editBeforeAdd()" class="btn btn-sm" style="background:#fee2e2;color:#7B1A1A;padding:14px;font-size:14px;">Editar</button>
+      </div>
+      <button onclick="cancelScan()" class="btn btn-light w-full mt-2" style="padding:13px;font-size:15px;">Descartar</button>
+    </div>
+  </div>
+
+  <!-- Edit sheet -->
+  <div id="edit-sheet" class="sheet-overlay hidden" onclick="closeEditOnBg(event)">
+    <div class="sheet-body" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <p class="font-bold text-gray-900 text-lg mb-4">Editar cheque</p>
+      <input type="hidden" id="e-id">
+
+      <div class="space-y-3">
+        <div><label class="lbl">Banco (referencia)</label><input type="text" id="e-banco" autocomplete="off"></div>
+        <div><label class="lbl">Razón social del emisor (col. P)</label><input type="text" id="e-razon" autocomplete="off"></div>
+        <div><label class="lbl">CUIT del cliente (col. B)</label><input type="text" id="e-cuit" inputmode="numeric" placeholder="20123456789"></div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">N° Cheque (col. C)</label><input type="text" id="e-num" inputmode="numeric"></div>
+          <div><label class="lbl">Cód. banco (col. D)</label><input type="text" id="e-codbanco" inputmode="numeric" placeholder="014"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Cód. postal (col. E)</label><input type="text" id="e-cp" inputmode="numeric" placeholder="1900"></div>
+          <div>
+            <label class="lbl">Tipo (col. H)</label>
+            <select id="e-tipo">
+              <option value="C">C — Común</option>
+              <option value="D">D — Diferido (CPD)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Fecha emisión (col. I)</label><input type="text" id="e-emision" placeholder="DD/MM/YYYY" inputmode="numeric"></div>
+          <div><label class="lbl">Fecha cheque (col. K)</label><input type="text" id="e-fechacheque" placeholder="DD/MM/YYYY" inputmode="numeric"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Importe (col. G)</label><input type="number" id="e-importe" step="0.01" min="0" inputmode="decimal"></div>
+          <div><label class="lbl">Diferimiento (col. J)</label><input type="number" id="e-dif" min="0" inputmode="numeric" placeholder="días"></div>
+        </div>
+
+        <div>
+          <label class="lbl">Registrado (col. L)</label>
+          <select id="e-registrado">
+            <option value="N">N — No (papel)</option>
+            <option value="S">S — Sí (e-cheq)</option>
+          </select>
+        </div>
+
+        <div><label class="lbl">Observaciones</label><input type="text" id="e-obs" autocomplete="off"></div>
+      </div>
+
+      <button onclick="saveEdit()" class="btn btn-blue w-full mt-5" style="padding:15px;font-size:16px;">Guardar cambios</button>
+      <button onclick="closeEditSheet()" class="btn btn-light w-full mt-2" style="padding:13px;font-size:15px;">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+  // ── Compatibilidad iOS Safari (file://) ────────────────────────────────────
+  if (!crypto.randomUUID) {
+    crypto.randomUUID = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+  const store = {
+    get: (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+    set: (k, v)   => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del: (k)       => { try { localStorage.removeItem(k); } catch {} },
+    str: (k)       => { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
+    setStr: (k, v) => { try { localStorage.setItem(k, v); } catch {} }
+  };
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let checks       = store.get('cp_checks', []);
+  let pendingCheck = null;
+  let editingNew   = false;
+  let lastExcelBlob = null;
+  let lastPdfBlob   = null;
+
+  // ── Bank code lookup (BCRA codes) ──────────────────────────────────────────
+  // Mapa de bancos: keywords → código BCRA + hints de dónde están los campos en ese banco
+  const BANK_MAP = [
+    { k:['nacion','nación','b.n.a','bna'],          code:'011',
+      hint:'CUIT impreso debajo del nombre del titular. Número de cheque en ángulo superior derecho de 8 dígitos. Sucursal indica código postal.' },
+    { k:['provincia','bapro','b.p.b.a'],            code:'014',
+      hint:'CUIT del titular impreso junto a la razón social. Número de cheque en esquina superior derecha. CPD tiene "PAGO DIFERIDO" impreso en rojo arriba.' },
+    { k:['santander','rio','río'],                  code:'072',
+      hint:'Logo Santander llama. Número de cheque en la esquina superior derecha. CUIT del titular debajo de razón social.' },
+    { k:['galicia'],                                code:'007',
+      hint:'Logo Galicia con G estilizada. CUIT impreso claramente junto al nombre. Número de cheque en ángulo superior derecho.' },
+    { k:['bbva','frances','francés','continental'], code:'017',
+      hint:'Logo BBVA azul. Número de cheque en esquina superior derecha. CUIT generalmente impreso junto al titular.' },
+    { k:['icbc','standard chartered'],              code:'015',
+      hint:'Logo ICBC rojo. CUIT del titular impreso. Número de cheque en esquina superior derecha.' },
+    { k:['citibank','citi'],                        code:'016',
+      hint:'Citibank N.A. Logo azul con arco rojo. Número de cheque en esquina superior derecha. CUIT del titular impreso junto al nombre.' },
+    { k:['cordoba','córdoba','bancor'],             code:'020',
+      hint:'Banco de la Provincia de Córdoba (Bancor). Número de cheque en esquina superior derecha.' },
+    { k:['macro'],                                  code:'285',
+      hint:'Logo Macro naranja. Número de cheque en la zona superior. CUIT impreso junto al nombre del titular.' },
+    { k:['supervielle'],                            code:'027',
+      hint:'Logo Supervielle. Número de cheque en esquina superior derecha. CUIT del titular impreso.' },
+    { k:['patagonia'],                              code:'034',
+      hint:'Logo Banco Patagonia. Número de cheque en esquina superior derecha.' },
+    { k:['ciudad'],                                 code:'029',
+      hint:'Banco Ciudad de Buenos Aires. Logo azul. Número de cheque en zona superior.' },
+    { k:['credicoop','coop'],                       code:'191',
+      hint:'Banco Credicoop Cooperativo. Logo verde. CUIT del titular impreso. Número de cheque en esquina superior.' },
+    { k:['comafi'],                                 code:'299',
+      hint:'Banco Comafi. Logo naranja/rojo. Número de cheque en esquina superior derecha.' },
+    { k:['hsbc'],                                   code:'150',
+      hint:'HSBC logo rojo/blanco. Número de cheque en esquina superior.' },
+    { k:['itau','itaú'],                            code:'259',
+      hint:'Itaú logo naranja. Número de cheque en esquina superior.' },
+    { k:['hipotecario','bhi'],                      code:'044',
+      hint:'Banco Hipotecario logo azul. Número de cheque en zona superior.' },
+    { k:['piano'],                                  code:'301',
+      hint:'Banco Piano. Número de cheque en zona superior.' },
+    { k:['brubank'],                                code:'254',
+      hint:'Brubank, banco digital. Cheques poco frecuentes.' },
+    { k:['naranja','naranja x'],                    code:'384',
+      hint:'Naranja X. Banco digital, cheques electrónicos.' },
+    { k:['columbia'],                               code:'389',
+      hint:'Banco Columbia. Logo naranja. Número de cheque en zona superior.' },
+    { k:['roela'],                                  code:'333',
+      hint:'Banco Roela. Número de cheque en zona superior.' },
+  ];
+
+  function getBankCode(name) {
+    if (!name) return '';
+    const l = name.toLowerCase();
+    for (const { k, code } of BANK_MAP) {
+      if (k.some(w => l.includes(w))) return code;
+    }
+    return '';
+  }
+
+  function getBankHint(name) {
+    if (!name) return '';
+    const l = name.toLowerCase();
+    for (const { k, hint } of BANK_MAP) {
+      if (k.some(w => l.includes(w))) return hint || '';
+    }
+    return '';
+  }
+
+  function calcDiferimiento(fechaEmision, fechaCheque) {
+    try {
+      const p = s => { const [d,m,y] = s.split('/'); return new Date(+y, +m-1, +d); };
+      const diff = Math.round((p(fechaCheque) - p(fechaEmision)) / 86400000);
+      return diff > 0 ? diff : 0;
+    } catch { return 0; }
+  }
+
+  // ── API Key (localStorage) ─────────────────────────────────────────────────
+  function getKey() { return store.str('cp_groq_key'); }
+  function openKeySheet() {
+    document.getElementById('key-input').value = getKey();
+    document.getElementById('key-status').classList.add('hidden');
+    document.getElementById('key-sheet').classList.remove('hidden');
+  }
+  function closeKeySheet() { document.getElementById('key-sheet').classList.add('hidden'); }
+  function saveKey() {
+    const k = document.getElementById('key-input').value.trim();
+    if (!k) { showKeyStatus('Ingresá una key válida', 'red'); return; }
+    store.setStr('cp_groq_key', k);
+    showKeyStatus('✓ Key guardada', 'green');
+    const banner = document.getElementById('key-banner');
+    if (banner) banner.style.display = 'none';
+    setTimeout(closeKeySheet, 1000);
+  }
+  function showKeyStatus(msg, color) {
+    const el = document.getElementById('key-status');
+    el.textContent = msg;
+    el.style.color = color === 'green' ? '#16a34a' : '#dc2626';
+    el.classList.remove('hidden');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  function init() {
+    renderChecks();
+    if (!getKey()) {
+      const banner = document.getElementById('key-banner');
+      if (banner) banner.style.display = 'flex';
+    }
+  }
+
+  // ── Recorte guiado (marco con forma de cheque) ────────────────────────────
+  const CHECK_ASPECT = 2.15; // ancho/alto típico de un cheque argentino
+  const _crop = { scale:1, baseScale:1, tx:0, ty:0, natW:0, natH:0, dragging:false, lastX:0, lastY:0, resolveFn:null };
+
+  function _loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          // Fotos de cámara son muy pesadas (12+ MP) — las reducimos antes de
+          // pasarlas al recorte para evitar problemas de memoria en iOS Safari
+          const MAXD = 1800;
+          if (img.naturalWidth > MAXD || img.naturalHeight > MAXD) {
+            const ratio = MAXD / Math.max(img.naturalWidth, img.naturalHeight);
+            const w = Math.round(img.naturalWidth * ratio);
+            const h = Math.round(img.naturalHeight * ratio);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const resized = new Image();
+            resized.onload = () => resolve(resized);
+            resized.onerror = reject;
+            resized.src = canvas.toDataURL('image/jpeg', 0.92);
+          } else {
+            resolve(img);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function _sizeCropFrame() {
+    const frame = document.getElementById('crop-frame');
+    const viewport = document.getElementById('crop-viewport');
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    let w = vw * 0.86;
+    let h = w / CHECK_ASPECT;
+    if (h > vh * 0.7) { h = vh * 0.7; w = h * CHECK_ASPECT; }
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+  }
+
+  function _applyCropTransform() {
+    const imgEl = document.getElementById('crop-img');
+    const s = _crop.baseScale * _crop.scale;
+    imgEl.style.width = _crop.natW + 'px';
+    imgEl.style.height = _crop.natH + 'px';
+    imgEl.style.transform = `translate(${_crop.tx}px, ${_crop.ty}px) scale(${s})`;
+  }
+
+  function openCropSheet(imgSourceEl) {
+    return new Promise((resolve) => {
+      _crop.resolveFn = resolve;
+      const sheet = document.getElementById('crop-sheet');
+      const imgEl = document.getElementById('crop-img');
+      _crop.natW = imgSourceEl.naturalWidth;
+      _crop.natH = imgSourceEl.naturalHeight;
+      imgEl.onerror = () => {
+        alert('No se pudo cargar la imagen para recortar. Probá de nuevo.');
+        closeCropSheet();
+        if (_crop.resolveFn) { _crop.resolveFn(null); _crop.resolveFn = null; }
+      };
+      imgEl.src = imgSourceEl.src;
+      sheet.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        _sizeCropFrame();
+        const viewport = document.getElementById('crop-viewport');
+        const vw = viewport.clientWidth, vh = viewport.clientHeight;
+        const frame = document.getElementById('crop-frame');
+        const frameW = frame.offsetWidth, frameH = frame.offsetHeight;
+        const baseScale = Math.max(frameW / _crop.natW, frameH / _crop.natH) * 1.15;
+        _crop.baseScale = baseScale;
+        _crop.scale = 1;
+        document.getElementById('crop-zoom').value = 100;
+        const dispW = _crop.natW * baseScale;
+        const dispH = _crop.natH * baseScale;
+        _crop.tx = (vw - dispW) / 2;
+        _crop.ty = (vh - dispH) / 2;
+        _applyCropTransform();
+      });
+    });
+  }
+
+  function closeCropSheet() { document.getElementById('crop-sheet').classList.add('hidden'); }
+
+  function _cropPointerDown(e) { _crop.dragging = true; _crop.lastX = e.clientX; _crop.lastY = e.clientY; }
+  function _cropPointerMove(e) {
+    if (!_crop.dragging) return;
+    _crop.tx += e.clientX - _crop.lastX;
+    _crop.ty += e.clientY - _crop.lastY;
+    _crop.lastX = e.clientX; _crop.lastY = e.clientY;
+    _applyCropTransform();
+  }
+  function _cropPointerUp() { _crop.dragging = false; }
+
+  function _cropZoomChange(e) {
+    const newScale = e.target.value / 100;
+    const frame = document.getElementById('crop-frame');
+    const fRect = frame.getBoundingClientRect();
+    const vRect = document.getElementById('crop-viewport').getBoundingClientRect();
+    const cx = fRect.left - vRect.left + fRect.width / 2;
+    const cy = fRect.top - vRect.top + fRect.height / 2;
+    const oldS = _crop.baseScale * _crop.scale;
+    const imgX = (cx - _crop.tx) / oldS;
+    const imgY = (cy - _crop.ty) / oldS;
+    _crop.scale = newScale;
+    const newS = _crop.baseScale * newScale;
+    _crop.tx = cx - imgX * newS;
+    _crop.ty = cy - imgY * newS;
+    _applyCropTransform();
+  }
+
+  function _cropConfirm() {
+    const imgEl = document.getElementById('crop-img');
+    const frame = document.getElementById('crop-frame');
+    const fRect = frame.getBoundingClientRect();
+    const iRect = imgEl.getBoundingClientRect();
+
+    const sx = Math.max(0, (fRect.left - iRect.left) / iRect.width  * _crop.natW);
+    const sy = Math.max(0, (fRect.top  - iRect.top)  / iRect.height * _crop.natH);
+    const sw = Math.min(_crop.natW - sx, fRect.width  / iRect.width  * _crop.natW);
+    const sh = Math.min(_crop.natH - sy, fRect.height / iRect.height * _crop.natH);
+
+    const outW = 1400;
+    const outH = Math.round(outW * (sh / sw));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW; canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, outW, outH);
+    ctx.filter = 'contrast(1.15) brightness(1.05)';
+    ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, outW, outH);
+    ctx.filter = 'none';
+
+    closeCropSheet();
+    if (_crop.resolveFn) { _crop.resolveFn(canvas); _crop.resolveFn = null; }
+  }
+
+  function _cropCancel() {
+    closeCropSheet();
+    if (_crop.resolveFn) { _crop.resolveFn(null); _crop.resolveFn = null; }
+  }
+
+  // ── Cámara en vivo (getUserMedia) con marco guía ──────────────────────────
+  let _liveStream = null;
+
+  async function openLiveCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      document.getElementById('input-camara').click();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+      _liveStream = stream;
+      const video = document.getElementById('live-video');
+      video.srcObject = stream;
+      document.getElementById('live-camera-sheet').classList.remove('hidden');
+      await video.play().catch(() => {});
+      requestAnimationFrame(_sizeLiveFrame);
+    } catch (e) {
+      // Sin permiso, sin cámara o no soportado: usamos la cámara nativa como respaldo
+      closeLiveCamera();
+      document.getElementById('input-camara').click();
+    }
+  }
+
+  function _sizeLiveFrame() {
+    const frame = document.getElementById('live-frame');
+    const viewport = document.getElementById('live-viewport');
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    let w = vw * 0.86;
+    let h = w / CHECK_ASPECT;
+    if (h > vh * 0.6) { h = vh * 0.6; w = h * CHECK_ASPECT; }
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+  }
+
+  function closeLiveCamera() {
+    document.getElementById('live-camera-sheet').classList.add('hidden');
+    if (_liveStream) {
+      _liveStream.getTracks().forEach(t => t.stop());
+      _liveStream = null;
+    }
+    document.getElementById('live-video').srcObject = null;
+  }
+
+  function cancelLiveCamera() { closeLiveCamera(); }
+
+  function captureLivePhoto() {
+    const video = document.getElementById('live-video');
+    const viewport = document.getElementById('live-viewport');
+    const frame = document.getElementById('live-frame');
+    if (!video.videoWidth || !video.videoHeight) return null;
+
+    const vpRect = viewport.getBoundingClientRect();
+    const fRect  = frame.getBoundingClientRect();
+    const cw = vpRect.width, ch = vpRect.height;
+    const vw = video.videoWidth, vh = video.videoHeight;
+
+    // object-fit:cover → escala que cubre el contenedor, centrada
+    const scale = Math.max(cw / vw, ch / vh);
+    const dispW = vw * scale, dispH = vh * scale;
+    const offX = (cw - dispW) / 2;
+    const offY = (ch - dispH) / 2;
+
+    const frameLeft = fRect.left - vpRect.left;
+    const frameTop  = fRect.top  - vpRect.top;
+
+    const sx = Math.max(0, (frameLeft - offX) / scale);
+    const sy = Math.max(0, (frameTop  - offY) / scale);
+    const sw = Math.min(vw - sx, fRect.width  / scale);
+    const sh = Math.min(vh - sy, fRect.height / scale);
+
+    const outW = 1400;
+    const outH = Math.round(outW * (sh / sw));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW; canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, outW, outH);
+    ctx.filter = 'contrast(1.15) brightness(1.05)';
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
+    ctx.filter = 'none';
+
+    closeLiveCamera();
+    return canvas;
+  }
+
+  async function _onLiveCapture() {
+    const canvas = captureLivePhoto();
+    if (!canvas) return;
+    await _processCroppedCanvas(canvas);
+  }
+
+  // ── Camera / File ──────────────────────────────────────────────────────────
+  async function _processCroppedCanvas(canvas) {
+    const prev = document.getElementById('preview-img');
+    prev.src = canvas.toDataURL('image/jpeg', 0.9);
+    prev.style.display = 'block';
+    setScanState(true);
+
+    const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+
+    try {
+      const items = await callClaude(base64, 'image/jpeg');
+      setScanState(false);
+      if (items.length > 1) {
+        items.forEach(d => { d.id = crypto.randomUUID(); checks.push(d); });
+        save(); renderChecks();
+        resetUpload();
+        toast(`${items.length} cheques agregados ✓`);
+      } else {
+        showConfirmSheet(items[0]);
+      }
+    } catch(err) {
+      setScanState(false);
+      alert('Error al escanear:\n' + err.message);
+      resetUpload();
+    }
+  }
+
+  async function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+
+    let img;
+    try { img = await _loadImageFromFile(file); }
+    catch { alert('No se pudo cargar la imagen.'); resetUpload(); return; }
+
+    const croppedCanvas = await openCropSheet(img);
+    if (!croppedCanvas) { resetUpload(); return; }
+
+    await _processCroppedCanvas(croppedCanvas);
+  }
+
+  function setScanState(scanning) {
+    document.getElementById('cam-idle').classList.toggle('hidden', scanning);
+    document.getElementById('cam-scanning').classList.toggle('hidden', !scanning);
+  }
+
+  function resetUpload() {
+    setScanState(false);
+    const img = document.getElementById('preview-img');
+    img.style.display = 'none'; img.src = '';
+    document.getElementById('input-camara').value  = '';
+    document.getElementById('input-galeria').value = '';
+  }
+
+  // ── Groq API (gratis — console.groq.com) ──────────────────────────────────
+  const PROMPT = `Sos un sistema experto en lectura de cheques bancarios argentinos. Analizá la imagen y extraé los datos de TODOS los cheques visibles.
+
+ANATOMÍA DEL CHEQUE ARGENTINO — dónde está cada dato:
+• ESQUINA SUPERIOR IZQUIERDA: nombre del banco y sucursal
+• ESQUINA SUPERIOR DERECHA: número de cheque (6-8 dígitos) y fecha de emisión (escrita a mano o sello)
+• ZONA CENTRAL SUPERIOR: "PÁGUESE POR ESTE CHEQUE A..." (beneficiario)
+• ZONA CENTRAL: importe en números (ej: $925.000,00) y en letras (ej: "novecientos veinticinco mil pesos")
+• ZONA INFERIOR: nombre/razón social del titular de la cuenta, su CUIT, firma
+• LÍNEA MICR (fila de números al pie, tinta magnética): |número cheque| |código banco| |número cuenta| |código postal|
+• SELLO O IMPRESIÓN: puede haber sello de la empresa emisora con razón social y CUIT
+
+CHEQUE DIFERIDO (CPD): tiene DOS fechas — fecha de emisión (cuando se firmó) y fecha de pago (futura, ej: "Páguese el DD/MM/YYYY"). Dice "PAGO DIFERIDO" impreso.
+CHEQUE COMÚN: tiene UNA sola fecha (la de emisión = la de pago).
+
+Devolvé ÚNICAMENTE un JSON array. Cada cheque es un objeto con estos campos exactos:
+
+{
+  "banco": "nombre completo del banco (ej: Banco de la Provincia de Buenos Aires)",
+  "codigo_banco": "código BCRA de 3 dígitos. Tabla: 007=Galicia, 011=Nación, 014=Provincia (Bs. As.), 015=ICBC, 016=Citibank, 017=BBVA/Francés, 020=Pcia. de Córdoba/Bancor, 027=Supervielle, 029=Ciudad, 034=Patagonia, 072=Santander/Río, 150=HSBC, 191=Credicoop, 285=Macro, 044=Hipotecario, 254=Brubank, 384=Naranja X. Dejá vacío solo si no podés identificar el banco.",
+  "numero_cheque": "número serie del cheque, 8 dígitos con ceros a la izquierda (ej: 00012345). Buscalo en esquina superior derecha O en la línea MICR al pie.",
+  "codigo_postal": "código postal de la sucursal si está visible en la línea MICR o en el encabezado, si no ''",
+  "cuit_cliente": "CUIT del dueño de la cuenta (el que firma/emite el cheque). Formato: solo 11 dígitos sin guiones (ej: 20123456789). Buscalo junto al nombre del titular, cerca de la firma, en sellos, o impreso en el cuerpo del cheque. Si no se ve, ''.",
+  "importe": número decimal sin puntos de miles ni símbolo $ (ej: 925000.00). Leé TANTO los números COMO las letras para confirmar. Si hay discrepancia, usá las letras.,
+  "tipo": "D" si dice PAGO DIFERIDO o CPD en cualquier parte, "C" para cheque común,
+  "fecha_emision": "fecha en que fue librado/firmado el cheque. Formato DD/MM/YYYY. Generalmente escrita a mano en la esquina superior derecha junto a la ciudad. OBLIGATORIO — buscá con atención aunque sea letra manuscrita.",
+  "fecha_cheque": "para cheque diferido: la fecha FUTURA de pago (la segunda fecha). Para cheque común: igual que fecha_emision. Formato DD/MM/YYYY.",
+  "registrado": "S" solo si dice e-cheq o cheque electrónico, sino "N",
+  "razon_social_emisor": "nombre o razón social de quien emite/firma el cheque (el librador, NO el banco). Buscalo impreso, en sello de goma, o manuscrito cerca de la firma. Ej: 'ACME SA', 'Juan Pérez'. Si no se ve, ''.",
+  "observaciones": "vacío para cheque normal. Para CPD escribí el importe en letras. Agregá ⚠ VERIFICAR: [campo] para cada campo que no pudiste leer con certeza."
+}
+
+REGLAS IMPORTANTES:
+1. El importe en LETRAS tiene prioridad sobre los números si hay diferencia.
+2. La fecha de emisión casi siempre está escrita a mano — buscá números en formato DD/MM/YYYY o DD-MM-YYYY.
+3. El CUIT del cliente NO es el del banco. Es el del dueño de la cuenta.
+4. Si hay varios cheques en la imagen, devolvé todos en el array.
+5. Responde SOLO con el JSON array. Sin markdown, sin explicaciones, sin texto antes o después.`;
+
+  const PROMPT_RETRY = `La imagen anterior de cheque argentino no fue procesada correctamente. Intentá de nuevo con más cuidado.
+
+Enfocate especialmente en:
+1. IMPORTE: leé tanto los números grandes como el texto en letras. Confirmalos entre sí.
+2. FECHAS: buscá números escritos a mano en la zona superior derecha del cheque.
+3. NÚMERO DE CHEQUE: está en el ángulo superior derecho Y en la línea de números al pie del cheque.
+4. CUIT: buscalo cerca del nombre del titular o en sellos de la empresa.
+
+Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.`;
+
+  async function _groqCall(base64, mediaType, prompt) {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getKey()}` },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        max_tokens: 1500,
+        temperature: 0.1,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+    if (!resp.ok) {
+      const e = await resp.json().catch(() => ({}));
+      const msg = e.error?.message || `Error ${resp.status}`;
+      if (resp.status === 429) throw new Error('Límite por minuto alcanzado. Esperá unos segundos y volvé a intentar.');
+      if (resp.status === 401) throw new Error('API Key inválida.\n\nTocá ⚙ y verificá la key de console.groq.com');
+      throw new Error(msg);
+    }
+    const json = await resp.json();
+    let raw = (json.choices?.[0]?.message?.content || '').trim();
+    if (raw.startsWith('```')) { raw = raw.split('```')[1]; if (raw.startsWith('json')) raw = raw.slice(4); }
+    return JSON.parse(raw.trim());
+  }
+
+  async function callClaude(base64, mediaType) {
+    if (!getKey()) { openKeySheet(); throw new Error('Ingresá la API Key de Groq primero (botón ⚙)'); }
+
+    let parsed;
+    try {
+      parsed = await _groqCall(base64, mediaType, PROMPT);
+    } catch(e) {
+      if (e instanceof SyntaxError || e.message.includes('fetch') || e.message.includes('JSON')) {
+        // Reintento: si detectamos banco en la respuesta parcial, usamos el hint
+        await new Promise(r => setTimeout(r, 1500));
+        parsed = await _groqCall(base64, mediaType, PROMPT_RETRY);
+      } else {
+        throw e;
+      }
+    }
+
+    // Si hay campos incompletos críticos, hacer un segundo llamado enfocado
+    const arr0 = Array.isArray(parsed) ? parsed : [parsed];
+    const needsRetry = arr0.some(d =>
+      !d.importe || d.importe === 0 ||
+      !d.fecha_emision || d.fecha_emision === '??/??/????' ||
+      !d.numero_cheque
+    );
+    if (needsRetry && arr0.length > 0) {
+      const bankHint = getBankHint(arr0[0].banco || '');
+      const retryPrompt = PROMPT_RETRY + (bankHint ? `\n\nPista específica para este banco: ${bankHint}` : '');
+      try {
+        await new Promise(r => setTimeout(r, 800));
+        parsed = await _groqCall(base64, mediaType, retryPrompt);
+      } catch { /* si falla el reintento, usamos lo que teníamos */ }
+    }
+    // Normalizar siempre a array (por si devuelve objeto único)
+    const arr = Array.isArray(parsed) ? parsed : [parsed];
+    return arr.map(d => {
+      d.banco               = d.banco               || '';
+      d.codigo_banco        = d.codigo_banco        || getBankCode(d.banco);
+      d.numero_cheque       = d.numero_cheque       || '';
+      d.codigo_postal       = d.codigo_postal       || '';
+      d.cuit_cliente        = (d.cuit_cliente || '').replace(/[-\s]/g, '').slice(0, 11);
+      d.importe             = d.importe             || 0;
+      d.tipo                = d.tipo                || 'C';
+      d.fecha_emision       = d.fecha_emision       || '??/??/????';
+      d.fecha_cheque        = d.fecha_cheque        || '??/??/????';
+      d.registrado          = d.registrado          || 'N';
+      d.razon_social_emisor = d.razon_social_emisor || '';
+      d.observaciones       = d.observaciones       || '';
+      if (d.diferimiento == null) {
+        d.diferimiento = d.tipo === 'D' ? calcDiferimiento(d.fecha_emision, d.fecha_cheque) : 0;
+      }
+      return d;
+    });
+  }
+
+  // ── Confirm sheet ──────────────────────────────────────────────────────────
+  function showConfirmSheet(check) {
+    pendingCheck = check;
+    const tipoBadge = `<span class="badge badge-${check.tipo}">${check.tipo === 'D' ? 'CPD' : 'Común'}</span>`;
+    const rows = [
+      ['Banco',         check.banco],
+      ['Razón social',  check.razon_social_emisor],
+      ['CUIT cliente',  check.cuit_cliente],
+      ['N° Cheque',     check.numero_cheque],
+      ['Cód. banco',    check.codigo_banco],
+      ['Importe',       '$' + fmtNum(check.importe)],
+      ['Tipo',          tipoBadge],
+      ['Fecha emisión', check.fecha_emision],
+      ['Fecha cheque',  check.fecha_cheque],
+      ['Diferimiento',  check.tipo === 'D' ? check.diferimiento + ' días' : null],
+    ].filter(r => r[1]);
+
+    document.getElementById('confirm-fields').innerHTML = rows.map(([k,v]) =>
+      `<div class="field-row"><span class="field-key">${k}</span><span class="field-val">${v}</span></div>`
+    ).join('');
+
+    const warn = document.getElementById('confirm-warn');
+    if (check.observaciones.includes('VERIFICAR')) {
+      warn.textContent = '⚠ ' + check.observaciones;
+      warn.classList.remove('hidden');
+    } else { warn.classList.add('hidden'); }
+
+    document.getElementById('confirm-sheet').classList.remove('hidden');
+  }
+
+  function confirmAdd() {
+    if (!pendingCheck) return;
+    pendingCheck.id = crypto.randomUUID();
+    checks.push(pendingCheck);
+    save();
+    closeConfirmSheet();
+    resetUpload();
+    renderChecks();
+    toast('Cheque agregado ✓');
+  }
+
+  function editBeforeAdd() { closeConfirmSheet(); editingNew = true; openEditSheet(pendingCheck); }
+
+  function cancelScan() { closeConfirmSheet(); pendingCheck = null; resetUpload(); }
+
+  function closeConfirmSheet() {
+    document.getElementById('confirm-sheet').classList.add('hidden');
+  }
+
+  // ── Checks list ────────────────────────────────────────────────────────────
+  function renderChecks() {
+    const list    = document.getElementById('checks-list');
+    const section = document.getElementById('checks-section');
+    const genBar  = document.getElementById('gen-bar');
+
+    document.getElementById('hdr-count').textContent = checks.length;
+    const total = checks.reduce((s,c) => s + Number(c.importe||0), 0);
+    document.getElementById('hdr-total').textContent = '$' + fmtNum(total);
+
+    if (!checks.length) {
+      section.classList.add('hidden');
+      genBar.classList.add('hidden');
+      document.getElementById('email-btns').classList.add('hidden');
+      return;
+    }
+    section.classList.remove('hidden');
+    genBar.classList.remove('hidden');
+
+    list.innerHTML = checks.map(c => {
+      const warn = (c.observaciones||'').includes('VERIFICAR');
+      const cls  = warn ? 'warn-card p-3 fade-in' : 'card p-3 fade-in';
+      const tipoBadge = `<span class="badge badge-${c.tipo||'C'}">${c.tipo==='D'?'CPD':'Común'}</span>`;
+      const nombre = c.razon_social_emisor || c.banco || '—';
+      return `<div class="${cls}">
+        <div class="flex items-start gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="font-bold text-gray-800 text-sm">${nombre}</p>
+              ${tipoBadge}
+            </div>
+            <p class="text-gray-500 text-xs mt-0.5">#${c.numero_cheque||'—'} · <span class="font-bold text-gray-700">$${fmtNum(c.importe)}</span></p>
+            <p class="text-gray-400 text-xs">${c.fecha_emision} → ${c.fecha_cheque}</p>
+            ${c.cuit_cliente ? `<p class="text-gray-400 text-xs">CUIT: ${c.cuit_cliente}</p>` : ''}
+            ${warn ? `<p class="text-xs mt-1 font-semibold" style="color:#92400e;">${c.observaciones}</p>` : ''}
+          </div>
+          <div class="flex flex-col gap-1.5 flex-shrink-0">
+            <button onclick='openEditSheet(${JSON.stringify(c)})' class="btn btn-sm btn-edit">Editar</button>
+            <button onclick='delCheck("${c.id}")' class="btn btn-sm btn-del">Borrar</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function delCheck(id) {
+    if (!confirm('¿Eliminar este cheque?')) return;
+    checks = checks.filter(c => c.id !== id);
+    save(); renderChecks();
+  }
+
+  function confirmClear() {
+    if (!confirm('¿Limpiar toda la sesión?')) return;
+    checks = []; save(); renderChecks();
+  }
+
+  // ── Edit sheet ─────────────────────────────────────────────────────────────
+  function openEditSheet(check) {
+    document.getElementById('e-id').value       = check.id || '';
+    document.getElementById('e-banco').value    = check.banco || '';
+    document.getElementById('e-razon').value    = check.razon_social_emisor || '';
+    document.getElementById('e-cuit').value     = check.cuit_cliente || '';
+    document.getElementById('e-num').value      = check.numero_cheque || '';
+    document.getElementById('e-codbanco').value = check.codigo_banco || '';
+    document.getElementById('e-cp').value       = check.codigo_postal || '';
+    document.getElementById('e-tipo').value     = check.tipo || 'C';
+    document.getElementById('e-emision').value  = check.fecha_emision || '';
+    document.getElementById('e-fechacheque').value = check.fecha_cheque || '';
+    document.getElementById('e-importe').value  = check.importe || '';
+    document.getElementById('e-dif').value      = check.diferimiento || '';
+    document.getElementById('e-registrado').value = check.registrado || 'N';
+    document.getElementById('e-obs').value      = check.observaciones || '';
+    document.getElementById('edit-sheet').classList.remove('hidden');
+  }
+
+  function closeEditSheet() {
+    document.getElementById('edit-sheet').classList.add('hidden');
+    editingNew = false;
+  }
+
+  function closeEditOnBg(e) {
+    if (e.target === document.getElementById('edit-sheet')) closeEditSheet();
+  }
+
+  function saveEdit() {
+    const emision     = document.getElementById('e-emision').value;
+    const fechaCheque = document.getElementById('e-fechacheque').value;
+    const tipo        = document.getElementById('e-tipo').value;
+    const difInput    = document.getElementById('e-dif').value;
+    const diferimiento = difInput !== '' ? parseInt(difInput) : (tipo === 'D' ? calcDiferimiento(emision, fechaCheque) : 0);
+
+    const updated = {
+      id:                  document.getElementById('e-id').value || crypto.randomUUID(),
+      banco:               document.getElementById('e-banco').value,
+      razon_social_emisor: document.getElementById('e-razon').value,
+      cuit_cliente:        document.getElementById('e-cuit').value,
+      numero_cheque:       document.getElementById('e-num').value,
+      codigo_banco:        document.getElementById('e-codbanco').value,
+      codigo_postal:       document.getElementById('e-cp').value,
+      tipo,
+      fecha_emision:       emision,
+      fecha_cheque:        fechaCheque,
+      importe:             parseFloat(document.getElementById('e-importe').value) || 0,
+      diferimiento,
+      registrado:          document.getElementById('e-registrado').value,
+      observaciones:       document.getElementById('e-obs').value,
+    };
+
+    if (editingNew) {
+      pendingCheck = updated;
+      closeEditSheet();
+      confirmAdd();
+    } else {
+      checks = checks.map(c => c.id === updated.id ? updated : c);
+      save(); closeEditSheet(); renderChecks();
+    }
+  }
+
+  // ── Excel — formato plantilla Tango ──────────────────────────────────────
+  function generateExcel() {
+    const btn = document.getElementById('btn-gen');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generando...';
+    try {
+      const headers = [
+        'Código de cliente',        // A
+        'C.U.I.T. del cliente',     // B
+        'Número de cheque',         // C
+        'Código de banco',          // D
+        'Código postal',            // E
+        'Clearing',                 // F
+        'Importe',                  // G
+        'Tipo',                     // H
+        'Fecha de emisión',         // I
+        'Diferimiento',             // J
+        'Fecha de cheque',          // K
+        'Registrado',               // L
+        'Fecha de registración',    // M
+        'Código de cliente emisor', // N
+        'Origen',                   // O
+        'Razón social del emisor',  // P
+        'Sucursal bancaria',        // Q
+        'Número de cuenta',         // R
+        'C.U.I.T. del emisor',      // S
+      ];
+
+      const rows = checks.map(c => {
+        const cuit = (c.cuit_cliente || '').replace(/[-\s]/g, '').slice(0, 11);
+        const importeStr = Number(c.importe || 0).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        const tipoStr = c.tipo === 'D' ? 'Diferido' : 'Comun';
+        const regStr  = c.registrado === 'S' ? 'Si' : 'No';
+        return [
+          '',                          // A — Código de cliente
+          cuit,                        // B — CUIT cliente (11 dígitos)
+          c.numero_cheque    || '',    // C — Número de cheque
+          c.codigo_banco     || '',    // D — Código de banco BCRA (014, 011, etc.)
+          c.codigo_postal    || '',    // E — Código postal
+          '',                          // F — Clearing
+          importeStr,                  // G — Importe "925.000,00" (texto, punto miles, coma decimal)
+          tipoStr,                     // H — Tipo: "Diferido" o "Comun"
+          c.fecha_emision    || '',    // I — Fecha de emisión DD/MM/YYYY
+          c.diferimiento     || 0,     // J — Diferimiento (días)
+          c.fecha_cheque     || '',    // K — Fecha de cheque DD/MM/YYYY
+          regStr,                      // L — Registrado: "Si" o "No"
+          '', '', '',                  // M, N, O
+          c.razon_social_emisor || '', // P — Razón social del emisor
+          '', '',                      // Q, R
+          cuit,                        // S — CUIT emisor
+        ];
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      ws['!cols'] = [
+        {wch:16},{wch:16},{wch:14},{wch:12},{wch:12},
+        {wch:10},{wch:12},{wch:8}, {wch:14},{wch:12},
+        {wch:14},{wch:12},{wch:14},{wch:16},{wch:10},
+        {wch:32},{wch:16},{wch:16},{wch:16},
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, 'Cheques');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob  = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      lastExcelBlob = blob;
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href = url; a.download = 'cheques_tango.xlsx'; a.click();
+      URL.revokeObjectURL(url);
+
+      document.getElementById('email-btns').classList.remove('hidden');
+      toast('Excel generado ✓');
+    } catch(err) {
+      alert('Error al generar Excel:\n' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '⬇ Excel Tango';
+    }
+  }
+
+  // ── PDF ────────────────────────────────────────────────────────────────────
+  function generatePDF() {
+    if (!checks.length) { alert('No hay cheques en la sesión'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const fecha = new Date().toLocaleDateString('es-AR');
+    const total = checks.reduce((s,c) => s + Number(c.importe||0), 0);
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Header band
+    doc.setFillColor(139, 26, 26);
+    doc.rect(0, 0, pageW, 22, 'F');
+    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('CENTER PLAST QUILMES SRL', 14, 9);
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.text('Cartera de Cheques de Terceros', 14, 15);
+    doc.text(`Fecha: ${fecha}`, pageW - 14, 15, { align: 'right' });
+
+    // Sub-band
+    doc.setFillColor(192, 57, 43);
+    doc.rect(0, 22, pageW, 8, 'F');
+    doc.setFontSize(9); doc.setTextColor(255,255,255);
+    doc.text(`Total acumulado:  $${fmtNum(total)}`, pageW - 14, 27.5, { align: 'right' });
+    doc.text(`${checks.length} cheque${checks.length !== 1 ? 's' : ''}`, 14, 27.5);
+
+    // Table
+    const rows = checks.map((c, i) => [
+      i + 1,
+      c.banco || '',
+      c.razon_social_emisor || '',
+      c.numero_cheque || '',
+      c.tipo === 'D' ? 'CPD' : 'Común',
+      c.fecha_emision || '',
+      c.fecha_cheque  || '',
+      '$' + fmtNum(c.importe)
+    ]);
+
+    doc.autoTable({
+      startY: 33,
+      head: [['#', 'Banco', 'Librador', 'N° Cheque', 'Tipo', 'F. Emisión', 'F. Cheque', 'Importe']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 2.5, font: 'helvetica' },
+      headStyles: { fillColor: [139, 26, 26], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [254, 226, 226] },
+      columnStyles: {
+        0: { cellWidth: 8,  halign: 'center' },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 38 },
+        3: { cellWidth: 22, halign: 'center' },
+        4: { cellWidth: 14, halign: 'center' },
+        5: { cellWidth: 22, halign: 'center' },
+        6: { cellWidth: 22, halign: 'center' },
+        7: { cellWidth: 24, halign: 'right' }
+      },
+      foot: [['', '', '', '', '', '', 'TOTAL', '$' + fmtNum(total)]],
+      footStyles: { fillColor: [139, 26, 26], textColor: 255, fontStyle: 'bold', halign: 'right' }
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFontSize(7); doc.setTextColor(150);
+      doc.text(`Página ${p} de ${pageCount}  —  Generado el ${fecha}`, pageW / 2, doc.internal.pageSize.getHeight() - 6, { align: 'center' });
+    }
+
+    lastPdfBlob = doc.output('blob');
+    doc.save(`cheques_${fecha.replace(/\//g,'-')}.pdf`);
+  }
+
+  // ── Email ──────────────────────────────────────────────────────────────────
+  async function sendToEmail(address) {
+    const total   = checks.reduce((s,c) => s + Number(c.importe||0), 0);
+    const fecha   = new Date().toLocaleDateString('es-AR');
+    const subject = encodeURIComponent(`Cartera de Cheques — ${fecha}`);
+    const body    = encodeURIComponent(
+      `Estimados,\n\nSe adjunta la cartera de cheques generada el ${fecha}.\n` +
+      `Cheques: ${checks.length}  |  Total: $${fmtNum(total)}\n\nSaludos,\nCenter Plast Quilmes SRL`
+    );
+
+    const allFiles = [];
+    if (lastExcelBlob) allFiles.push(new File([lastExcelBlob], 'cheques_tango.xlsx', {type: lastExcelBlob.type}));
+    if (lastPdfBlob)   allFiles.push(new File([lastPdfBlob], `cheques_${fecha.replace(/\//g,'-')}.pdf`, {type:'application/pdf'}));
+
+    // Intentar compartir Excel + PDF juntos; si el navegador no soporta varios
+    // archivos a la vez, degradar a compartir solo el primero disponible.
+    for (let n = allFiles.length; n > 0; n--) {
+      const candidate = allFiles.slice(0, n);
+      if (navigator.canShare && navigator.canShare({files: candidate})) {
+        try {
+          await navigator.share({ files: candidate, title:`Cartera de Cheques — ${fecha}` });
+          return;
+        } catch(e) {
+          if (e.name === 'AbortError') return;
+          break;
+        }
+      }
+    }
+
+    window.location.href = `mailto:${address}?subject=${subject}&body=${body}`;
+    toast(allFiles.length ? 'Adjuntá los archivos generados al mail' : 'Generá el Excel y/o PDF antes de enviar');
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function fmtNum(n) {
+    return Number(n||0).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function save() { store.set('cp_checks', checks); }
+
+  function toast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    Object.assign(t.style, {
+      position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)',
+      background:'#8B1A1A', color:'white', padding:'10px 20px', borderRadius:'20px',
+      fontSize:'14px', fontWeight:'600', zIndex:'100', boxShadow:'0 4px 12px rgba(0,0,0,.2)',
+      transition:'opacity .3s', pointerEvents:'none', whiteSpace:'nowrap'
+    });
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 1800);
+  }
+
+  // ── Asistente virtual ─────────────────────────────────────────────────────
+  let _chatHistory = [];
+  const _CHAT_SYSTEM = `Sos el asistente virtual de la app de cheques de Center Plast Quilmes SRL, Argentina.
+Ayudás a Lea (la administradora) con todo lo relacionado a esta app.
+
+LA APP HACE:
+- Escanea cheques de terceros con la cámara o galería del celular
+- Usa IA (Groq/Llama) para extraer los datos del cheque automáticamente
+- Genera un Excel (.xlsx) en el formato exacto para importar en Tango Gestión
+- También genera PDF con la cartera de cheques del día
+
+FORMATO TANGO (importante):
+- Importe: texto con separador de miles punto y decimales coma, ej: "925.000,00"
+- Tipo: "Diferido" (CPD) o "Comun" (al día)
+- Registrado: "Si" o "No"
+- CUIT: 11 dígitos sin guiones, ej: 20123456789
+- Código banco BCRA: ej Nación=011, Provincia=014, Santander=072, Galicia=007, BBVA=017
+- Si Tango dice "no tiene cheques para importar": revisar Tipo e Importe
+- Si Tango dice "falta columna Número de cheque": el archivo está mal generado
+- Tango requiere el .xls real (no SheetJS); usar el script "Convertir para Tango.vbs"
+
+CONFIGURACIÓN:
+- La API Key de Groq es gratis en console.groq.com → "Create API key"
+- Se guarda en el dispositivo (localStorage), no viaja a ningún servidor
+- En iPhone: tocar el ⚙ arriba a la derecha para ingresar la key
+- Si el análisis falla: verificar que la key esté bien copiada (empieza con "gsk_")
+
+Respondé siempre en español rioplatense, de forma concisa y práctica. Usá saltos de línea para que sea fácil de leer. Máximo 200 palabras salvo que pregunten algo muy específico.`;
+
+  function openChat() {
+    document.getElementById('chat-sheet').classList.remove('hidden');
+    _renderChat();
+    setTimeout(() => {
+      const inp = document.getElementById('chat-input');
+      if (inp) inp.focus();
+    }, 300);
+  }
+  function closeChat() { document.getElementById('chat-sheet').classList.add('hidden'); }
+
+  function _escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function _renderChat() {
+    const box = document.getElementById('chat-messages');
+    if (!box) return;
+    if (!_chatHistory.length) {
+      box.innerHTML = `<div style="text-align:center;padding:24px 12px;">
+        <div style="font-size:36px;margin-bottom:8px;">🤖</div>
+        <p style="font-weight:700;color:#1a1a1a;margin:0 0 4px;">¡Hola! Soy el asistente.</p>
+        <p style="color:#6b7280;font-size:13px;margin:0;">Preguntame sobre cheques,<br>Tango, la API key, o cualquier duda.</p>
+      </div>`;
+      return;
+    }
+    box.innerHTML = _chatHistory.map(m => {
+      if (m.role === 'typing') return `<div class="chat-msg-ai"><div class="chat-bubble-ai chat-bubble-typing"><span class="chat-dot"></span><span class="chat-dot"></span><span class="chat-dot"></span></div></div>`;
+      const isU = m.role === 'user';
+      return `<div class="${isU?'chat-msg-user':'chat-msg-ai'}"><div class="${isU?'chat-bubble-user':'chat-bubble-ai'}">${_escHtml(m.content)}</div></div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  let _voiceRecognition = null;
+
+  function toggleVoiceChat() {
+    const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecog) {
+      alert('Tu navegador no soporta reconocimiento de voz.\nUsá Chrome o Safari (iOS 14.5+).');
+      return;
+    }
+    const btn = document.getElementById('btn-voice-chat');
+
+    // Si ya está escuchando, detener
+    if (_voiceRecognition) {
+      _voiceRecognition.stop();
+      return;
+    }
+
+    _voiceRecognition = new SpeechRecog();
+    _voiceRecognition.lang = 'es-AR';
+    _voiceRecognition.interimResults = true;
+    _voiceRecognition.maxAlternatives = 1;
+    _voiceRecognition.continuous = false;
+
+    btn.style.background = '#dc2626';
+    btn.style.color = 'white';
+    btn.textContent = '⏹';
+
+    const inp = document.getElementById('chat-input');
+
+    _voiceRecognition.onresult = function(e) {
+      let transcript = '';
+      for (let i = 0; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      inp.value = transcript;
+    };
+
+    _voiceRecognition.onend = function() {
+      _voiceRecognition = null;
+      btn.style.background = '#f1f5f9';
+      btn.style.color = '#374151';
+      btn.textContent = '🎤';
+      // Si hay texto, enviar automáticamente
+      if (inp.value.trim()) sendChat();
+    };
+
+    _voiceRecognition.onerror = function(e) {
+      _voiceRecognition = null;
+      btn.style.background = '#f1f5f9';
+      btn.style.color = '#374151';
+      btn.textContent = '🎤';
+      if (e.error === 'not-allowed') alert('Permiso de micrófono denegado. Habilitalo en la configuración del navegador.');
+    };
+
+    _voiceRecognition.start();
+  }
+
+  async function sendChat() {
+    const inp = document.getElementById('chat-input');
+    const msg = inp.value.trim();
+    if (!msg) return;
+    inp.value = '';
+    _chatHistory.push({ role:'user', content: msg });
+    _chatHistory.push({ role:'typing', content:'' });
+    _renderChat();
+
+    const btn = document.getElementById('btn-send-chat');
+    if (btn) btn.disabled = true;
+
+    try {
+      const key = getKey();
+      if (!key) { _chatHistory.pop(); _chatHistory.push({role:'assistant',content:'⚠️ Primero configurá la API Key de Groq tocando el ⚙ arriba a la derecha.'}); _renderChat(); if(btn)btn.disabled=false; return; }
+
+      const messages = [
+        { role:'system', content: _CHAT_SYSTEM },
+        ..._chatHistory.filter(m=>m.role!=='typing').map(m=>({role:m.role,content:m.content}))
+      ];
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body: JSON.stringify({ model:'meta-llama/llama-4-scout-17b-16e-instruct', messages, max_tokens:400, temperature:0.5 })
+      });
+      const data = await res.json();
+      _chatHistory = _chatHistory.filter(m=>m.role!=='typing');
+      if (data.choices && data.choices[0]) {
+        _chatHistory.push({ role:'assistant', content: data.choices[0].message.content.trim() });
+      } else {
+        _chatHistory.push({ role:'assistant', content:'Error al consultar la IA. Intentá de nuevo.' });
+      }
+    } catch(e) {
+      _chatHistory = _chatHistory.filter(m=>m.role!=='typing');
+      _chatHistory.push({ role:'assistant', content:'Sin conexión o error de red. Verificá el internet.' });
+    }
+    _renderChat();
+    if (btn) btn.disabled = false;
+  }
+
+  // ── Conectar todos los eventos al cargar ──────────────────────────────────
+  function _on(id, evt, fn) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(evt, fn);
+  }
+  function _onTouch(id, fn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchend', function(e) { e.preventDefault(); fn(); });
+    el.addEventListener('click', fn);
+  }
+
+  _on('input-camara', 'change', function() { if (this.files && this.files[0]) handleFile(this.files[0]); });
+  _on('input-galeria', 'change', function() { if (this.files && this.files[0]) handleFile(this.files[0]); });
+
+  _onTouch('btn-settings', openKeySheet);
+  _onTouch('btn-chat',     openChat);
+  _onTouch('btn-voice-chat', toggleVoiceChat);
+
+  // Recorte guiado: arrastre con Pointer Events (unifica mouse/touch)
+  const _cropVp = document.getElementById('crop-viewport');
+  if (_cropVp) {
+    _cropVp.addEventListener('pointerdown', _cropPointerDown);
+    _cropVp.addEventListener('pointermove', _cropPointerMove);
+    _cropVp.addEventListener('pointerup', _cropPointerUp);
+    _cropVp.addEventListener('pointercancel', _cropPointerUp);
+  }
+  _on('crop-zoom', 'input', _cropZoomChange);
+  _onTouch('btn-crop-confirm', _cropConfirm);
+  _onTouch('btn-crop-cancel', _cropCancel);
+
+  // Cámara en vivo
+  _onTouch('btn-open-camera', openLiveCamera);
+  _onTouch('btn-live-cancel', cancelLiveCamera);
+  _onTouch('btn-live-capture', _onLiveCapture);
+
+  init();
+  </script>
+</body>
+</html>
