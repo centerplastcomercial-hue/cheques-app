@@ -396,6 +396,15 @@
       <div id="key-status" class="mt-2 text-sm hidden"></div>
       <button onclick="saveKey()" class="btn btn-blue w-full mt-4" style="padding:14px;font-size:16px;">Guardar</button>
       <button onclick="closeKeySheet()" class="btn btn-light w-full mt-2" style="padding:13px;">Cancelar</button>
+
+      <div style="border-top:1px solid #f1f5f9;margin-top:18px;padding-top:16px;">
+        <p class="font-bold text-gray-900" style="font-size:14px;margin:0 0 4px;">Calidad de la IA</p>
+        <p class="text-gray-400 text-xs" style="margin:0 0 10px;">Cada vez que corregís un dato a mano, queda guardado para que podamos revisar los errores más comunes y mejorar la lectura.</p>
+        <div style="display:flex;gap:8px;">
+          <button onclick="exportCorrections()" class="btn w-full" style="background:#374151;color:white;padding:11px;font-size:13px;">📊 Exportar correcciones</button>
+          <button onclick="clearCorrections()" class="btn" style="background:#fee2e2;color:#dc2626;padding:11px 14px;font-size:13px;">Borrar</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -908,6 +917,15 @@ ANATOMÍA DEL CHEQUE ARGENTINO — dónde está cada dato:
 CHEQUE DIFERIDO (CPD): tiene DOS fechas — fecha de emisión (cuando se firmó) y fecha de pago (futura, ej: "Páguese el DD/MM/YYYY"). Dice "PAGO DIFERIDO" impreso.
 CHEQUE COMÚN: tiene UNA sola fecha (la de emisión = la de pago).
 
+CÓMO LEER ESCRITURA MANUSCRITA (la mayoría de los datos clave están escritos a mano, no impresos):
+• Tomate el tiempo de analizar trazo por trazo antes de decidir un dígito o letra — no adivines por la forma general.
+• Dígitos manuscritos ambiguos en Argentina: el "1" suele tener un gancho inicial (no confundir con "7"); el "7" se escribe a menudo con una raya horizontal cruzando el trazo vertical; el "4" puede estar abierto o cerrado arriba; el "9" y el "4" se confunden si el lazo no se cierra del todo; el "0" y el "6" se confunden si la curva inferior no se ve clara.
+• Fechas manuscritas: normalmente en formato DD/MM/AA o DD/MM/AAAA, separadas por "/" o "-". El mes casi nunca supera 12 — si leíste un mes >12, probablemente invertiste día y mes o confundiste un dígito.
+• Importe en letras (texto manuscrito o impreso en cursiva): leelo palabra por palabra ("son pesos...", "novecientos", "veinticinco mil"). Las palabras numéricas en español son la fuente MÁS confiable del importe — siempre tienen prioridad sobre los números si hay cualquier duda en estos últimos.
+• Firmas y sellos: la razón social y el CUIT muchas veces están en sello de goma (tinta azul/negra, texto impreso pero con tinta irregular) — distinguilo de la firma manuscrita en cursiva, que NO hay que intentar transcribir como texto.
+• Si una palabra o número tiene varias lecturas posibles, elegí la que sea consistente con el resto del cheque (ej: si el importe en letras dice "novecientos veinticinco mil", el número debe ser 925.000 aunque el primer dígito manuscrito parezca otra cosa).
+• Nunca inventes un dígito o letra que no podés justificar visualmente. Si después de analizar con cuidado seguís sin estar seguro, marcalo en "observaciones" con ⚠ VERIFICAR en vez de adivinar.
+
 Devolvé ÚNICAMENTE un JSON array. Cada cheque es un objeto con estos campos exactos:
 
 {
@@ -947,7 +965,7 @@ Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getKey()}` },
       body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
         max_tokens: 1500,
         temperature: 0.1,
         messages: [{
@@ -1021,6 +1039,13 @@ Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.
       if (d.diferimiento == null) {
         d.diferimiento = d.tipo === 'D' ? calcDiferimiento(d.fecha_emision, d.fecha_cheque) : 0;
       }
+      // Snapshot de lo que devolvió la IA, para poder comparar después si se corrige a mano
+      d._aiOriginal = {
+        banco: d.banco, codigo_banco: d.codigo_banco, numero_cheque: d.numero_cheque,
+        codigo_postal: d.codigo_postal, cuit_cliente: d.cuit_cliente, importe: d.importe,
+        tipo: d.tipo, fecha_emision: d.fecha_emision, fecha_cheque: d.fecha_cheque,
+        registrado: d.registrado, razon_social_emisor: d.razon_social_emisor
+      };
       return d;
     });
   }
@@ -1131,7 +1156,10 @@ Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.
   }
 
   // ── Edit sheet ─────────────────────────────────────────────────────────────
+  let _editingOriginal = null;
+
   function openEditSheet(check) {
+    _editingOriginal = check._aiOriginal || null;
     document.getElementById('e-id').value       = check.id || '';
     document.getElementById('e-banco').value    = check.banco || '';
     document.getElementById('e-razon').value    = check.razon_social_emisor || '';
@@ -1182,6 +1210,9 @@ Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.
       observaciones:       document.getElementById('e-obs').value,
     };
 
+    _logCorrections(_editingOriginal, updated);
+    updated._aiOriginal = _editingOriginal;
+
     if (editingNew) {
       pendingCheck = updated;
       closeEditSheet();
@@ -1190,6 +1221,61 @@ Devolvé SOLO el JSON array con los mismos campos de antes. Sin texto adicional.
       checks = checks.map(c => c.id === updated.id ? updated : c);
       save(); closeEditSheet(); renderChecks();
     }
+  }
+
+  // ── Registro de correcciones (para mejorar el prompt con el tiempo) ──────
+  const _CORRECTION_FIELDS = {
+    banco: 'Banco', codigo_banco: 'Código banco', numero_cheque: 'N° cheque',
+    codigo_postal: 'Código postal', cuit_cliente: 'CUIT cliente', importe: 'Importe',
+    tipo: 'Tipo', fecha_emision: 'Fecha emisión', fecha_cheque: 'Fecha cheque',
+    registrado: 'Registrado', razon_social_emisor: 'Razón social emisor'
+  };
+
+  function _logCorrections(aiOriginal, updated) {
+    if (!aiOriginal) return;
+    const log = store.get('cp_corrections', []);
+    let changed = false;
+    for (const [key, label] of Object.entries(_CORRECTION_FIELDS)) {
+      const before = (aiOriginal[key] ?? '').toString().trim();
+      const after  = (updated[key]    ?? '').toString().trim();
+      if (before !== after) {
+        log.push({
+          fecha: new Date().toISOString(),
+          banco: aiOriginal.banco || '',
+          campo: label,
+          valor_ia: before,
+          valor_corregido: after
+        });
+        changed = true;
+      }
+    }
+    if (changed) store.set('cp_corrections', log.slice(-500));
+  }
+
+  function exportCorrections() {
+    const log = store.get('cp_corrections', []);
+    if (!log.length) { alert('Todavía no hay correcciones registradas.'); return; }
+    const headers = ['Fecha', 'Banco', 'Campo', 'Valor IA', 'Valor corregido'];
+    const rows = log.map(r => [
+      new Date(r.fecha).toLocaleString('es-AR'), r.banco, r.campo, r.valor_ia, r.valor_corregido
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws['!cols'] = [{wch:18},{wch:22},{wch:18},{wch:20},{wch:20}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Correcciones');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob  = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'correcciones_ia.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+    toast(`${log.length} correcciones exportadas ✓`);
+  }
+
+  function clearCorrections() {
+    if (!confirm('¿Borrar el registro de correcciones?')) return;
+    store.set('cp_corrections', []);
+    toast('Registro borrado');
   }
 
   // ── Excel — formato plantilla Tango ──────────────────────────────────────
